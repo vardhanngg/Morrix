@@ -7,11 +7,9 @@
 
   <display-name>Morix — 3 Men's Morris</display-name>
 
-  <!--
-    DB config fallbacks — used when context.xml JNDI is unavailable.
-    On Render, DATABASE_URL env var takes priority (parsed in DB.java).
-    When running on Tomcat locally with context.xml, JNDI is used instead.
-  -->
+  <!-- DB config — on Render these are overridden by environment variables.
+       The AppContextListener reads the DATABASE_URL env var first;
+       these are only fallbacks for local testing. -->
   <context-param>
     <param-name>db.url</param-name>
     <param-value>jdbc:postgresql://localhost:5432/morix</param-value>
@@ -40,7 +38,7 @@
     <url-pattern>/</url-pattern>
   </servlet-mapping>
 
-  <!-- Leaderboard REST endpoint — AJAX -->
+  <!-- Leaderboard REST endpoint -->
   <servlet>
     <servlet-name>LeaderboardServlet</servlet-name>
     <servlet-class>com.morix.servlet.LeaderboardServlet</servlet-class>
@@ -50,7 +48,7 @@
     <url-pattern>/api/leaderboard</url-pattern>
   </servlet-mapping>
 
-  <!-- Game History REST endpoint — AJAX -->
+  <!-- Game history AJAX endpoint -->
   <servlet>
     <servlet-name>HistoryServlet</servlet-name>
     <servlet-class>com.morix.servlet.HistoryServlet</servlet-class>
@@ -60,7 +58,7 @@
     <url-pattern>/api/history</url-pattern>
   </servlet-mapping>
 
-  <!-- Player Profile REST endpoint — AJAX -->
+  <!-- Player profile AJAX endpoint -->
   <servlet>
     <servlet-name>ProfileServlet</servlet-name>
     <servlet-class>com.morix.servlet.ProfileServlet</servlet-class>

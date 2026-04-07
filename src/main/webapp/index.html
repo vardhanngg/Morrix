@@ -205,8 +205,11 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
       <input class="field" id="reg-user" type="text" placeholder="Pick a username"/>
       <label class="field-label">Password</label>
       <input class="field" id="reg-pass" type="password" placeholder="Create a password"/>
-      <label class="field-label">Confirm Password</label>
+            <label class="field-label">Confirm Password</label>
       <input class="field" id="reg-pass2" type="password" placeholder="Repeat password"/>
+      <label class="field-label">Email <span style="color:var(--muted);font-size:0.72rem">(optional — for invite notifications)</span></label>
+      <input class="field" id="reg-email" type="email" placeholder="your@email.com"/>
+
       <button class="btn btn-gold" onclick="doRegister()">Create Account</button>
       <div class="login-switch">Have an account? <span onclick="toggleForm('login')">Sign in</span></div>
     </div>
@@ -388,6 +391,7 @@ let reconnectAttempts=0
 const MAX_RECONNECTS=5
 let friendStatuses={}, pendingInviteFrom=null, pendingRematchFrom=null
 let isVsBot=false
+let myTurn=false  // true only when it is this player's turn
 
 // ══════════════════════════════════════════════════════════
 //  AVATAR HELPERS
@@ -444,7 +448,7 @@ function setBadges(mySymbol){
 }
 function enterGame(symbol,code,token,opponent,vsBot){
   playerSymbol=symbol; gameCode=code; opponentName=opponent||'Opponent'; isVsBot=!!vsBot
-  boardState=Array(9).fill(null); selected=null
+  boardState=Array(9).fill(null); selected=null; myTurn=false
   document.getElementById('rematch-btn').style.display='none'
   document.getElementById('rematch-btn').disabled=false
   showError('')
@@ -534,12 +538,13 @@ function doRegister(){
   const u=document.getElementById('reg-user').value.trim()
   const p=document.getElementById('reg-pass').value
   const p2=document.getElementById('reg-pass2').value
+  const email=document.getElementById('reg-email').value.trim()
   if(!u||!p){setLoginError('Please fill in all fields.');return}
   if(p.length<6){setLoginError('Password must be at least 6 characters.');return}
   if(p!==p2){setLoginError('Passwords do not match.');return}
   if(u.length<3){setLoginError('Username must be 3+ characters.');return}
   setLoginError('Connecting...')
-  openSocket(()=>sendMsg({action:'register',username:u,password:p}))
+  openSocket(()=>sendMsg({action:'register',username:u,password:p,email}))
 }
 function enterApp(username,token,friends,statuses){
   currentUser=username; authToken=token
@@ -805,21 +810,25 @@ function onMessage(event){
     document.getElementById('lobby').style.display='none'
     document.getElementById('waiting').style.display='none'
     document.getElementById('game').style.display='flex'
-    document.getElementById('status').textContent='Reconnected!'
+    document.getElementById('emoji-bar').style.display='flex'
+    document.getElementById('chat-box').style.display='block'
+    document.getElementById('roomCodeSmall').textContent='Room: '+data.code
+    document.getElementById('status').textContent='Reconnected! Waiting for board...'
     return
   }
   if(t==='start'){
-    if(document.getElementById('game').style.display==='none'){
-      document.getElementById('lobby').style.display='none'
-      document.getElementById('waiting').style.display='none'
-      document.getElementById('game').style.display='flex'
-    }
+    document.getElementById('lobby').style.display='none'
+    document.getElementById('waiting').style.display='none'
+    document.getElementById('game').style.display='flex'
+    document.getElementById('emoji-bar').style.display='flex'
+    document.getElementById('chat-box').style.display='block'
     document.getElementById('roomCodeSmall').textContent='Room: '+(gameCode||document.getElementById('joinCode').value)
-    const firstLabel=data.first_turn?(data.first_turn===playerSymbol?'You go first!':'Opponent goes first!'):''
+    myTurn=(data.first_turn===playerSymbol)
+    const firstLabel=data.first_turn?(myTurn?'🎯 You go first!':'⏳ Opponent goes first!'):''
     document.getElementById('status').textContent=`Game started! ${firstLabel}`
     return
   }
-  if(t==='board'){boardState=data.board;updateTurnBadge(data.turn);document.getElementById('status').textContent=data.turn===playerSymbol?'🎯 Your turn':"⏳ Opponent's turn...";drawBoard(boardState);return}
+  if(t==='board'){boardState=data.board;myTurn=(data.turn===playerSymbol);updateTurnBadge(data.turn);document.getElementById('status').textContent=myTurn?'🎯 Your turn':"⏳ Opponent's turn...";drawBoard(boardState);return}
 
   if(t==='win'){
     drawBoard(boardState)
@@ -864,7 +873,8 @@ function onMessage(event){
     document.getElementById('rematch-btn').disabled=false
     showError('')
     document.getElementById('chat-messages').innerHTML=''
-    const firstLabel=data.first_turn?(data.first_turn===playerSymbol?'🎯 You go first!':'⏳ Opponent goes first!'):'Game restarted!'
+    myTurn=(data.first_turn===playerSymbol)
+    const firstLabel=data.first_turn?(myTurn?'🎯 You go first!':'⏳ Opponent goes first!'):'Game restarted!'
     document.getElementById('status').textContent=`🔄 Rematch! ${firstLabel}`
     return
   }
@@ -895,6 +905,7 @@ function drawBoard(board){
 }
 document.querySelector('svg').addEventListener('click',function(e){
   if(!socket||socket.readyState!==WebSocket.OPEN)return
+  if(!myTurn)return  // not your turn — ignore clicks
   const target=e.target.closest('[data-pos]');if(!target)return
   const pos=parseInt(target.dataset.pos)
   const placed=boardState.filter(v=>v!==null).length

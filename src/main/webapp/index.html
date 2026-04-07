@@ -38,7 +38,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 .login-switch span{color:var(--gold);cursor:pointer;text-decoration:underline}
 #login-error{color:var(--red);font-size:0.82rem;min-height:18px;margin-bottom:8px;text-align:center}
 
-/* MAIN */
+/* MAIN — same as old version */
 #main-screen{flex-direction:row;align-items:stretch;min-height:100vh}
 .game-col{flex:1;display:flex;flex-direction:column;align-items:center;padding:28px 20px;min-height:100vh}
 .top-bar{width:100%;max-width:480px;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
@@ -75,8 +75,28 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--te
 .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);animation:pulse 1.2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
 
-/* game board */
-#game{flex-direction:column;align-items:center;gap:12px;width:100%;max-width:420px}
+/* ── GAME AREA: game board + chat side by side ── */
+/* This wrapper only shows during a game and lays them out in a row */
+#game-with-chat{
+  display:none;
+  flex-direction:row;
+  align-items:flex-start;
+  gap:14px;
+  width:100%;
+  max-width:660px;
+}
+
+/* game board column — same as old #game */
+#game{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:12px;
+  flex-shrink:0;
+  width:100%;
+  max-width:420px;
+}
+
 .player-badges{display:flex;gap:16px}
 .badge{padding:7px 18px;border-radius:20px;font-weight:600;font-size:0.82rem;transition:outline 0.2s}
 .badge-x{background:#1a3a6e;color:var(--blue)}.badge-o{background:#3a1a1a;color:var(--red)}.badge.active{outline:2px solid var(--gold)}
@@ -101,18 +121,26 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
   100%{opacity:0;transform:translateY(-160px) scale(0.6)}
 }
 
-/* ── CHAT ── */
-/* game + chat side by side */
-#game-area{display:none;flex-direction:row;align-items:flex-start;gap:14px;width:100%;max-width:760px}
-#game{display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0}
-#chat-box{width:220px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;align-self:stretch;min-height:340px}
+/* ── CHAT — sits to the right of #game inside #game-with-chat ── */
+#chat-box{
+  width:210px;
+  flex-shrink:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  display:none;          /* hidden by default, shown during pvp game */
+  flex-direction:column;
+  align-self:stretch;
+  min-height:340px;
+}
 .chat-title{font-size:0.72rem;color:var(--gold);letter-spacing:1px;padding:8px 12px;border-bottom:1px solid var(--border);text-transform:uppercase;font-weight:600}
 #chat-messages{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:4px;min-height:200px}
 .chat-msg{font-size:0.82rem}.chat-msg .chat-who{font-weight:700}
 .chat-msg.mine .chat-who{color:var(--blue)}.chat-msg.theirs .chat-who{color:var(--red)}
 .chat-msg.system{color:var(--muted);font-style:italic;font-size:0.75rem}
 #chat-input-row{display:flex;border-top:1px solid var(--border)}
-#chat-input{flex:1;background:#0d0d1a;border:none;padding:8px 12px;color:var(--text);font-size:0.85rem;outline:none;min-width:0}
+#chat-input{flex:1;background:#0d0d1a;border:none;padding:8px 10px;color:var(--text);font-size:0.82rem;outline:none;min-width:0}
 #chat-send{background:var(--gold);color:#1a1a2e;border:none;padding:8px 10px;cursor:pointer;font-weight:700}
 
 /* ── PROFILE PANEL ── */
@@ -130,7 +158,7 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
 .overlay-box p{color:var(--text2);margin-bottom:20px;font-size:0.92rem}
 .overlay-box .btn{margin:4px}
 
-/* leaderboard */
+/* leaderboard — same as old: sits below game in .game-col */
 #leaderboard-section{width:100%;max-width:420px;margin-top:8px}
 #leaderboard-section summary{color:var(--gold);cursor:pointer;font-size:0.82rem;user-select:none;list-style:none;padding:6px 0;border-bottom:1px solid var(--border)}
 #leaderboard-section summary::-webkit-details-marker{display:none}
@@ -139,7 +167,7 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
 #lb-table td{padding:5px 6px;color:var(--text2)}
 #lb-table tr:nth-child(even) td{background:#16213e55}
 
-/* FRIENDS PANEL */
+/* FRIENDS PANEL — same as old */
 .friends-col{width:272px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:100vh;flex-shrink:0}
 .friends-header{padding:18px 14px 12px;border-bottom:1px solid var(--border);background:var(--surface2)}
 .friends-header h3{font-size:0.78rem;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:10px}
@@ -185,7 +213,12 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
 #rematch-banner{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--gold);border-radius:12px;padding:14px 20px;font-size:0.88rem;z-index:250;box-shadow:0 4px 24px #00000088;align-items:center;gap:14px;white-space:nowrap}
 #rematch-banner.show{display:flex}
 
-@media(max-width:720px){#main-screen{flex-direction:column}.friends-col{width:100%;min-height:auto;border-left:none;border-top:1px solid var(--border)}#game-area{flex-direction:column}#chat-box{width:100%;min-height:180px}}
+@media(max-width:820px){
+  #main-screen{flex-direction:column}
+  .friends-col{width:100%;min-height:auto;border-left:none;border-top:1px solid var(--border)}
+  #game-with-chat{flex-direction:column;max-width:420px}
+  #chat-box{width:100%;min-height:180px}
+}
 </style>
 </head>
 <body>
@@ -208,11 +241,10 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
       <input class="field" id="reg-user" type="text" placeholder="Pick a username"/>
       <label class="field-label">Password</label>
       <input class="field" id="reg-pass" type="password" placeholder="Create a password"/>
-            <label class="field-label">Confirm Password</label>
+      <label class="field-label">Confirm Password</label>
       <input class="field" id="reg-pass2" type="password" placeholder="Repeat password"/>
       <label class="field-label">Email <span style="color:var(--muted);font-size:0.72rem">(optional — for invite notifications)</span></label>
       <input class="field" id="reg-email" type="email" placeholder="your@email.com"/>
-
       <button class="btn btn-gold" onclick="doRegister()">Create Account</button>
       <div class="login-switch">Have an account? <span onclick="toggleForm('login')">Sign in</span></div>
     </div>
@@ -239,6 +271,7 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
       </div>
     </div>
 
+    <!-- LOBBY -->
     <div id="lobby">
       <div class="card">
         <div class="card-title">Host a Game</div>
@@ -257,7 +290,6 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
       </div>
       <p id="lobby-error" style="color:var(--red);font-size:0.82rem;min-height:18px;text-align:center"></p>
 
-      <!-- Profile Panel (loaded via AJAX) -->
       <div id="profile-panel">
         <div class="card-title">📊 Your Stats</div>
         <div class="profile-stats">
@@ -273,6 +305,7 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
       </div>
     </div>
 
+    <!-- WAITING -->
     <div id="waiting">
       <p style="color:var(--muted)">Share this code with your friend:</p>
       <div class="big-code" id="displayCode">----</div>
@@ -281,65 +314,67 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
       <button class="btn btn-danger btn-sm" onclick="leaveGame()">Cancel</button>
     </div>
 
-    <div id="game-area">
-    <div id="game">
-      <div class="player-badges">
-        <div class="badge badge-x" id="badge-x">🔵 You (X)</div>
-        <div class="badge badge-o" id="badge-o">🔴 Opponent (O)</div>
-      </div>
-      <p id="status">...</p>
-      <div class="board-wrap">
-        <svg width="310" height="310">
-          <line x1="50" y1="50" x2="260" y2="50" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
-          <line x1="50" y1="155" x2="260" y2="155" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
-          <line x1="50" y1="260" x2="260" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
-          <line x1="50" y1="50" x2="50" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
-          <line x1="155" y1="50" x2="155" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
-          <line x1="260" y1="50" x2="260" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
-          <line x1="50" y1="50" x2="260" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
-          <line x1="260" y1="50" x2="50" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
-          <circle class="vertex" cx="50"  cy="50"  r="13" data-pos="1"/>
-          <circle class="vertex" cx="155" cy="50"  r="13" data-pos="2"/>
-          <circle class="vertex" cx="260" cy="50"  r="13" data-pos="3"/>
-          <circle class="vertex" cx="50"  cy="155" r="13" data-pos="4"/>
-          <circle class="vertex" cx="155" cy="155" r="13" data-pos="5"/>
-          <circle class="vertex" cx="260" cy="155" r="13" data-pos="6"/>
-          <circle class="vertex" cx="50"  cy="260" r="13" data-pos="7"/>
-          <circle class="vertex" cx="155" cy="260" r="13" data-pos="8"/>
-          <circle class="vertex" cx="260" cy="260" r="13" data-pos="9"/>
-        </svg>
-      </div>
-      <!-- Emoji Reaction Bar -->
-      <div class="emoji-bar" id="emoji-bar" style="display:none">
-        <button class="emoji-btn" onclick="sendEmoji('😂')">😂</button>
-        <button class="emoji-btn" onclick="sendEmoji('🔥')">🔥</button>
-        <button class="emoji-btn" onclick="sendEmoji('💀')">💀</button>
-        <button class="emoji-btn" onclick="sendEmoji('👑')">👑</button>
-        <button class="emoji-btn" onclick="sendEmoji('😤')">😤</button>
-        <button class="emoji-btn" onclick="sendEmoji('🫡')">🫡</button>
-      </div>
-      <div class="game-actions">
-        <button class="btn btn-success" id="rematch-btn" style="display:none" onclick="requestRematch()">🔄 Rematch</button>
-        <button class="btn btn-danger" onclick="leaveGame()">✕ Leave</button>
-      </div>
-      <p id="error-msg" style="display:none"></p>
-      <p class="room-code-small" id="roomCodeSmall"></p>
-    </div>
+    <!-- GAME + CHAT side by side (wrapper hidden by default) -->
+    <div id="game-with-chat">
 
-    </div><!-- end #game -->
+      <!-- GAME BOARD -->
+      <div id="game">
+        <div class="player-badges">
+          <div class="badge badge-x" id="badge-x">🔵 You (X)</div>
+          <div class="badge badge-o" id="badge-o">🔴 Opponent (O)</div>
+        </div>
+        <p id="status">...</p>
+        <div class="board-wrap">
+          <svg width="310" height="310">
+            <line x1="50" y1="50" x2="260" y2="50" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
+            <line x1="50" y1="155" x2="260" y2="155" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
+            <line x1="50" y1="260" x2="260" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
+            <line x1="50" y1="50" x2="50" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
+            <line x1="155" y1="50" x2="155" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
+            <line x1="260" y1="50" x2="260" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
+            <line x1="50" y1="50" x2="260" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
+            <line x1="260" y1="50" x2="50" y2="260" stroke="#e2b96f" stroke-width="1" opacity="0.35"/>
+            <circle class="vertex" cx="50"  cy="50"  r="13" data-pos="1"/>
+            <circle class="vertex" cx="155" cy="50"  r="13" data-pos="2"/>
+            <circle class="vertex" cx="260" cy="50"  r="13" data-pos="3"/>
+            <circle class="vertex" cx="50"  cy="155" r="13" data-pos="4"/>
+            <circle class="vertex" cx="155" cy="155" r="13" data-pos="5"/>
+            <circle class="vertex" cx="260" cy="155" r="13" data-pos="6"/>
+            <circle class="vertex" cx="50"  cy="260" r="13" data-pos="7"/>
+            <circle class="vertex" cx="155" cy="260" r="13" data-pos="8"/>
+            <circle class="vertex" cx="260" cy="260" r="13" data-pos="9"/>
+          </svg>
+        </div>
+        <!-- Emoji Reaction Bar -->
+        <div class="emoji-bar" id="emoji-bar" style="display:none">
+          <button class="emoji-btn" onclick="sendEmoji('😂')">😂</button>
+          <button class="emoji-btn" onclick="sendEmoji('🔥')">🔥</button>
+          <button class="emoji-btn" onclick="sendEmoji('💀')">💀</button>
+          <button class="emoji-btn" onclick="sendEmoji('👑')">👑</button>
+          <button class="emoji-btn" onclick="sendEmoji('😤')">😤</button>
+          <button class="emoji-btn" onclick="sendEmoji('🫡')">🫡</button>
+        </div>
+        <div class="game-actions">
+          <button class="btn btn-success" id="rematch-btn" style="display:none" onclick="requestRematch()">🔄 Rematch</button>
+          <button class="btn btn-danger" onclick="leaveGame()">✕ Leave</button>
+        </div>
+        <p id="error-msg" style="display:none"></p>
+        <p class="room-code-small" id="roomCodeSmall"></p>
+      </div><!-- end #game -->
 
-    <!-- Chat Box (shown during game, hidden vs bot) -->
-    <div id="chat-box">
-      <div class="chat-title">💬 Chat</div>
-      <div id="chat-messages"></div>
-      <div id="chat-input-row">
-        <input id="chat-input" type="text" placeholder="Say something..." maxlength="200"/>
-        <button id="chat-send" onclick="sendChat()">➤</button>
+      <!-- CHAT — shown only during pvp, hidden vs bot -->
+      <div id="chat-box">
+        <div class="chat-title">💬 Chat</div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-row">
+          <input id="chat-input" type="text" placeholder="Say something..." maxlength="200"/>
+          <button id="chat-send" onclick="sendChat()">➤</button>
+        </div>
       </div>
-    </div>
 
-    </div><!-- end #game-area -->
+    </div><!-- end #game-with-chat -->
 
+    <!-- LEADERBOARD — stays below game area, same as old -->
     <details id="leaderboard-section">
       <summary>🏆 Leaderboard ▾</summary>
       <table id="lb-table">
@@ -347,9 +382,10 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
         <tbody id="lb-body"><tr><td colspan="3" style="color:#555;padding:6px">Loading...</td></tr></tbody>
       </table>
     </details>
-  </div>
 
-  <!-- FRIENDS PANEL -->
+  </div><!-- end .game-col -->
+
+  <!-- FRIENDS PANEL — same as old, on far right -->
   <div class="friends-col">
     <div class="friends-header">
       <h3>👥 Friends</h3>
@@ -399,7 +435,7 @@ let reconnectAttempts=0
 const MAX_RECONNECTS=5
 let friendStatuses={}, pendingInviteFrom=null, pendingRematchFrom=null
 let isVsBot=false
-let myTurn=false  // true only when it is this player's turn
+let myTurn=false
 
 // ══════════════════════════════════════════════════════════
 //  AVATAR HELPERS
@@ -433,12 +469,13 @@ function showToast(msg,dur=3000){
 function goToLobby(){
   if(socket&&socket.readyState===WebSocket.OPEN) sendMsg({action:'leave_game'})
   hideOverlay();clearGameSession();hideRematchBanner()
-  document.getElementById('game-area').style.display='none'
-  document.getElementById('game').style.display=''
+  // Hide game wrapper, show lobby
+  document.getElementById('game-with-chat').style.display='none'
   document.getElementById('waiting').style.display='none'
   document.getElementById('lobby').style.display=''
   document.getElementById('rematch-btn').style.display='none'
   document.getElementById('rematch-btn').disabled=false
+  // Reset chat
   document.getElementById('chat-box').style.display='none'
   document.getElementById('emoji-bar').style.display='none'
   document.getElementById('chat-messages').innerHTML=''
@@ -465,39 +502,36 @@ function enterGame(symbol,code,token,opponent,vsBot){
   setBadges(symbol)
   document.getElementById('lobby').style.display='none'
   document.getElementById('waiting').style.display='none'
-  document.getElementById('game-area').style.display='flex'
+  // Show the game+chat wrapper
+  document.getElementById('game-with-chat').style.display='flex'
   document.getElementById('roomCodeSmall').textContent='Room: '+code
   document.getElementById('emoji-bar').style.display='flex'
-  // Hide chat for bot games
+  // Only show chat for PvP — hide for bot games
   document.getElementById('chat-box').style.display=vsBot?'none':'flex'
   document.getElementById('chat-messages').innerHTML=''
   drawBoard(boardState)
 }
 
 // ══════════════════════════════════════════════════════════
-//  AJAX — Profile & History (uses fetch() = modern AJAX)
+//  AJAX — Profile & History
 // ══════════════════════════════════════════════════════════
-
 async function loadProfileAjax(){
   if(!currentUser) return
   try{
-    const res  = await fetch('/api/profile?username='+encodeURIComponent(currentUser))
-    const data = await res.json()
+    const res=await fetch('/api/profile?username='+encodeURIComponent(currentUser))
+    const data=await res.json()
     document.getElementById('profile-panel').style.display='block'
-    document.getElementById('stat-wins').textContent   = data.wins   ?? '-'
-    document.getElementById('stat-losses').textContent = data.losses ?? '-'
-    document.getElementById('stat-rate').textContent   = (data.winRate ?? 0)+'%'
-  }catch(e){
-    document.getElementById('profile-panel').style.display='none'
-  }
+    document.getElementById('stat-wins').textContent=data.wins??'-'
+    document.getElementById('stat-losses').textContent=data.losses??'-'
+    document.getElementById('stat-rate').textContent=(data.winRate??0)+'%'
+  }catch(e){document.getElementById('profile-panel').style.display='none'}
 }
-
 async function loadMatchHistoryAjax(){
   if(!currentUser) return
   const el=document.getElementById('match-history')
   try{
-    const res   = await fetch('/api/history?username='+encodeURIComponent(currentUser)+'&limit=5')
-    const data  = await res.json()
+    const res=await fetch('/api/history?username='+encodeURIComponent(currentUser)+'&limit=5')
+    const data=await res.json()
     if(!data.length){el.innerHTML='<div class="no-matches">No games played yet!</div>';return}
     el.innerHTML=data.map(m=>`
       <div class="match-item">
@@ -507,9 +541,7 @@ async function loadMatchHistoryAjax(){
         </div>
         <span class="match-result result-${m.result}">${m.result.toUpperCase()}</span>
       </div>`).join('')
-  }catch(e){
-    el.innerHTML='<div class="no-matches">Could not load history.</div>'
-  }
+  }catch(e){el.innerHTML='<div class="no-matches">Could not load history.</div>'}
 }
 
 // ══════════════════════════════════════════════════════════
@@ -568,7 +600,6 @@ function enterApp(username,token,friends,statuses){
   document.getElementById('user-display-name').textContent=username
   friendStatuses={};(friends||[]).forEach(f=>{friendStatuses[f]=(statuses||{})[f]||'offline'})
   renderFriends()
-  // Load profile & history via AJAX
   loadProfileAjax()
   loadMatchHistoryAjax()
 }
@@ -603,7 +634,6 @@ function hostGame(){
   if(!socket||socket.readyState!==WebSocket.OPEN){openSocket(()=>sendMsg({action:'host'}));return}
   sendMsg({action:'host'})
 }
-// NEW: Play vs bot
 function hostBotGame(){
   showLobbyError('')
   if(!socket||socket.readyState!==WebSocket.OPEN){openSocket(()=>sendMsg({action:'host_bot'}));return}
@@ -629,17 +659,16 @@ function leaveGame(){goToLobby()}
 // ══════════════════════════════════════════════════════════
 function sendEmoji(emoji){
   sendMsg({action:'emoji',emoji})
-  spawnFlyingEmoji(emoji, true)
+  spawnFlyingEmoji(emoji,true)
 }
-function spawnFlyingEmoji(emoji, isMine){
+function spawnFlyingEmoji(emoji,isMine){
   const el=document.createElement('div')
   el.className='flying-emoji'
   el.textContent=emoji
-  // Random horizontal position on screen
   el.style.left=(20+Math.random()*60)+'vw'
   el.style.bottom='40vh'
   document.body.appendChild(el)
-  setTimeout(()=>el.remove(), 1600)
+  setTimeout(()=>el.remove(),1600)
 }
 
 // ══════════════════════════════════════════════════════════
@@ -788,16 +817,13 @@ function onMessage(event){
     return
   }
   if(t==='invite_result'){
-    const msg=data.message||(data.success?`Invite sent to ${data.to}!`:data.message)
-    showToast(msg||'Invite sent!', 3000)
+    showToast(data.message||(data.success?`Invite sent to ${data.to}!`:data.message)||'Invite sent!',3000)
     return
   }
   if(t==='invite_declined'){showToast(`${data.by} declined your invite.`);return}
 
-  // Bot / friend game ready
   if(t==='game_ready'){
     enterGame(data.symbol,data.code,data.session_token,data.opponent,data.vs_bot)
-    // Set myTurn NOW — after enterGame sets playerSymbol
     if(data.first_turn) myTurn=(data.first_turn===playerSymbol)
     const firstLabel=myTurn?'🎯 You go first!':`⏳ ${data.opponent||'Opponent'} goes first!`
     document.getElementById('status').textContent=`Game starting! ${firstLabel}`
@@ -817,7 +843,6 @@ function onMessage(event){
   if(t==='joined'){
     const jcode=document.getElementById('joinCode').value.trim()
     enterGame(data.symbol,jcode,data.session_token,null,false)
-    // myTurn will be set by the 'start' message that follows immediately
     return
   }
   if(t==='rejoined'){
@@ -825,7 +850,7 @@ function onMessage(event){
     setBadges(data.symbol)
     document.getElementById('lobby').style.display='none'
     document.getElementById('waiting').style.display='none'
-    document.getElementById('game-area').style.display='flex'
+    document.getElementById('game-with-chat').style.display='flex'
     document.getElementById('emoji-bar').style.display='flex'
     document.getElementById('chat-box').style.display=isVsBot?'none':'flex'
     document.getElementById('roomCodeSmall').textContent='Room: '+data.code
@@ -835,7 +860,7 @@ function onMessage(event){
   if(t==='start'){
     document.getElementById('lobby').style.display='none'
     document.getElementById('waiting').style.display='none'
-    document.getElementById('game-area').style.display='flex'
+    document.getElementById('game-with-chat').style.display='flex'
     document.getElementById('emoji-bar').style.display='flex'
     document.getElementById('chat-box').style.display=isVsBot?'none':'flex'
     document.getElementById('roomCodeSmall').textContent='Room: '+(gameCode||document.getElementById('joinCode').value)
@@ -844,7 +869,12 @@ function onMessage(event){
     document.getElementById('status').textContent=`Game started! ${firstLabel}`
     return
   }
-  if(t==='board'){boardState=data.board;myTurn=(data.turn===playerSymbol);updateTurnBadge(data.turn);document.getElementById('status').textContent=myTurn?'🎯 Your turn':"⏳ Opponent's turn...";drawBoard(boardState);return}
+  if(t==='board'){
+    boardState=data.board;myTurn=(data.turn===playerSymbol)
+    updateTurnBadge(data.turn)
+    document.getElementById('status').textContent=myTurn?'🎯 Your turn':"⏳ Opponent's turn..."
+    drawBoard(boardState);return
+  }
 
   if(t==='win'){
     drawBoard(boardState)
@@ -853,24 +883,17 @@ function onMessage(event){
     document.getElementById('rematch-btn').style.display='inline-block'
     document.getElementById('rematch-btn').disabled=false
     clearGameSession()
-    // Reload profile/history via AJAX after game ends
     setTimeout(()=>{loadProfileAjax();loadMatchHistoryAjax()},1000)
     showOverlay(youWon?'🎉 You Win!':'😞 You Lose',youWon?'Congratulations! Want a rematch?':'Better luck next time!',!isVsBot)
     return
   }
 
-  // ── NEW: Chat message ──
   if(t==='chat'){
     const mine=data.from===currentUser
-    appendChat(data.from,data.text,mine,false)
-    return
+    appendChat(data.from,data.text,mine,false);return
   }
-
-  // ── NEW: Emoji from opponent ──
   if(t==='emoji'){
-    const mine=data.from===currentUser
-    if(!mine) spawnFlyingEmoji(data.emoji,false)
-    return
+    if(data.from!==currentUser) spawnFlyingEmoji(data.emoji,false);return
   }
 
   if(t==='opponent_disconnected'){document.getElementById('status').textContent='⏳ Opponent disconnected...';showError(data.message);return}
@@ -921,7 +944,7 @@ function drawBoard(board){
 }
 document.querySelector('svg').addEventListener('click',function(e){
   if(!socket||socket.readyState!==WebSocket.OPEN)return
-  if(!myTurn)return  // not your turn — ignore clicks
+  if(!myTurn)return
   const target=e.target.closest('[data-pos]');if(!target)return
   const pos=parseInt(target.dataset.pos)
   const placed=boardState.filter(v=>v!==null).length
@@ -949,13 +972,16 @@ document.getElementById('reg-user').addEventListener('keydown',e=>{if(e.key==='E
 document.getElementById('reg-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()})
 document.getElementById('reg-pass2').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()})
 
-// ── Leaderboard (AJAX) ────────────────────────────────────
+// ── Leaderboard (AJAX) — filters out bot entries ─────────
 document.getElementById('leaderboard-section').addEventListener('toggle',function(){if(this.open)loadLeaderboard()})
 async function loadLeaderboard(){
   try{
     const data=await(await fetch('/api/leaderboard')).json()
+    // Filter out bot player from leaderboard
+    const filtered=data.filter(r=>r.player!=='Bot'&&r.player!=='bot'&&!r.player.toLowerCase().startsWith('bot'))
     const tbody=document.getElementById('lb-body')
-    tbody.innerHTML=data.length?data.map((r,i)=>`<tr><td>${i+1}</td><td>${r.player}</td><td>${r.wins}</td></tr>`).join('')
+    tbody.innerHTML=filtered.length
+      ?filtered.map((r,i)=>`<tr><td>${i+1}</td><td>${r.player}</td><td>${r.wins}</td></tr>`).join('')
       :`<tr><td colspan="3" style="color:#555;padding:6px">No games yet.</td></tr>`
   }catch{document.getElementById('lb-body').innerHTML=`<tr><td colspan="3" style="color:#555">Could not load.</td></tr>`}
 }

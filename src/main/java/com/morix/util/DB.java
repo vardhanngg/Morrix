@@ -82,13 +82,10 @@ public class DB {
                 "CREATE TABLE IF NOT EXISTS users (" +
                 "  username      TEXT PRIMARY KEY," +
                 "  password_hash TEXT NOT NULL," +
-                "  email         TEXT,
-                "  friends       TEXT NOT NULL DEFAULT '[]'," +
+                "  friends       TEXT NOT NULL DEFAULT ''[]''," +
                 "  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ")"
             );
-            // Upgrade existing DB safely
-            try { s.executeUpdate("ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT"); } catch (Exception ignored) {}
             s.executeUpdate(
                 "CREATE TABLE IF NOT EXISTS games (" +
                 "  id        SERIAL PRIMARY KEY," +
@@ -159,23 +156,12 @@ public class DB {
         }
     }
 
-    public static void createUser(String username, String passwordHash, String email) throws SQLException {
+    public static void createUser(String username, String passwordHash) throws SQLException {
         try (Connection c = getConn();
              PreparedStatement p = c.prepareStatement(
-                     "INSERT INTO users(username,password_hash,friends,email) VALUES(?,?,?,?)")) {
-            p.setString(1, username); p.setString(2, passwordHash); p.setString(3, "[]"); p.setString(4, email);
+                     "INSERT INTO users(username,password_hash,friends) VALUES(?,?,?)")) {
+            p.setString(1, username); p.setString(2, passwordHash); p.setString(3, "[]");
             p.executeUpdate();
-        }
-    }
-
-    public static String getEmail(String username) throws SQLException {
-        try (Connection c = getConn();
-             PreparedStatement p = c.prepareStatement("SELECT email FROM users WHERE username=?")) {
-            p.setString(1, username);
-            try (ResultSet r = p.executeQuery()) {
-                if (!r.next()) return null;
-                return r.getString(1);
-            }
         }
     }
 
@@ -259,7 +245,7 @@ public class DB {
         JSONArray arr = new JSONArray();
         try (Connection c = getConn(); Statement s = c.createStatement();
              ResultSet r = s.executeQuery(
-                     "SELECT username, wins FROM players WHERE username NOT LIKE '%Bot%' AND username != '🤖 Bot' ORDER BY wins DESC LIMIT 10")) {
+                     "SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10")) {
             while (r.next())
                 arr.put(new JSONObject().put("player", r.getString(1)).put("wins", r.getInt(2)));
         }

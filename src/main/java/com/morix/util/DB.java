@@ -82,7 +82,8 @@ public class DB {
                 "CREATE TABLE IF NOT EXISTS users (" +
                 "  username      TEXT PRIMARY KEY," +
                 "  password_hash TEXT NOT NULL," +
-                "  friends       TEXT NOT NULL DEFAULT ''[]''," +
+                "  friends       TEXT NOT NULL DEFAULT '[]'," +
+                "  email         TEXT," +
                 "  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ")"
             );
@@ -156,12 +157,25 @@ public class DB {
         }
     }
 
-    public static void createUser(String username, String passwordHash) throws SQLException {
+    public static void createUser(String username, String passwordHash, String email) throws SQLException {
         try (Connection c = getConn();
              PreparedStatement p = c.prepareStatement(
-                     "INSERT INTO users(username,password_hash,friends) VALUES(?,?,?)")) {
+                     "INSERT INTO users(username,password_hash,friends,email) VALUES(?,?,?,?)")) {
             p.setString(1, username); p.setString(2, passwordHash); p.setString(3, "[]");
+            p.setString(4, email);
             p.executeUpdate();
+        }
+    }
+
+    public static String getEmail(String username) throws SQLException {
+        try (Connection c = getConn();
+             PreparedStatement p = c.prepareStatement(
+                     "SELECT email FROM users WHERE username=?")) {
+            p.setString(1, username);
+            try (ResultSet r = p.executeQuery()) {
+                if (!r.next()) return null;
+                return r.getString("email");
+            }
         }
     }
 

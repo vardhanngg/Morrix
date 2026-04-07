@@ -4,7 +4,6 @@
   Defines a JNDI DataSource so Tomcat manages the connection pool.
   DB.java looks this up via: java:comp/env/jdbc/morixDB
   On Render, override URL/username/password via DATABASE_URL env var (DB.java handles both).
--->
 <Context>
     <Resource
         name="jdbc/morixDB"
@@ -22,4 +21,7 @@
         testWhileIdle="true"
         timeBetweenEvictionRunsMillis="30000"
     />
+</Context>
+-->
+<Context>
 </Context>

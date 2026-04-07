@@ -41,18 +41,18 @@
       <version>42.7.3</version>
     </dependency>
 
-    <!-- JavaMail for email invites -->
-    <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
-      <version>1.6.2</version>
-    </dependency>
-
     <!-- JSON (minimal, no extra deps) -->
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>20231013</version>
+    </dependency>
+
+    <!-- JavaMail — for sending invite emails via SMTP -->
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.6.2</version>
     </dependency>
   </dependencies>
 

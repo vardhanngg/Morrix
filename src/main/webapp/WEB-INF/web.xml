@@ -48,26 +48,6 @@
     <url-pattern>/api/leaderboard</url-pattern>
   </servlet-mapping>
 
-  <!-- Game history AJAX endpoint -->
-  <servlet>
-    <servlet-name>HistoryServlet</servlet-name>
-    <servlet-class>com.morix.servlet.HistoryServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>HistoryServlet</servlet-name>
-    <url-pattern>/api/history</url-pattern>
-  </servlet-mapping>
-
-  <!-- Player profile AJAX endpoint -->
-  <servlet>
-    <servlet-name>ProfileServlet</servlet-name>
-    <servlet-class>com.morix.servlet.ProfileServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>ProfileServlet</servlet-name>
-    <url-pattern>/api/profile</url-pattern>
-  </servlet-mapping>
-
   <!-- Health check -->
   <servlet>
     <servlet-name>HealthServlet</servlet-name>

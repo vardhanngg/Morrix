@@ -5,6 +5,7 @@ import com.morix.game.GameEngine;
 import com.morix.model.GameStore;
 import com.morix.model.Room;
 import com.morix.util.DB;
+import com.morix.util.MailUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -130,11 +131,12 @@ public class GameEndpoint {
             case "register": {
                 String u = msg.optString("username","").trim();
                 String p = msg.optString("password","");
+                String e = msg.optString("email","").trim();
                 if (u.isEmpty()||p.isEmpty()) { send(session,err("Username and password required.")); return; }
                 if (!u.matches("[A-Za-z0-9_]{3,32}")) { send(session,err("Username: 3-32 chars, letters/numbers/underscore.")); return; }
                 if (p.length()<6) { send(session,err("Password must be at least 6 characters.")); return; }
                 if (DB.userExists(u)) { send(session,err("Username already taken.")); return; }
-                DB.createUser(u, DB.hashPassword(p));
+                DB.createUser(u, DB.hashPassword(p), e.isEmpty() ? null : e);
                 username = u;
                 store.putOnline(username, session);
                 String tok = store.createAuthToken(username);
@@ -465,14 +467,35 @@ public class GameEndpoint {
 
             case "send_invite": {
                 if (username==null) return true;
-                String target   = msg.optString("to","");
+                String target    = msg.optString("to","");
                 Session targetWs = store.getOnline(target);
-                if (targetWs==null) {
-                    send(session,obj().put("type","invite_result").put("success",false).put("message",target+" is offline."));
+                String host      = System.getenv("RENDER_EXTERNAL_HOSTNAME");
+                String gameLink  = (host != null && !host.isEmpty()) ? "https://" + host : "http://localhost:8080";
+                boolean emailSent = false;
+                // Always try email — works online or offline
+                try {
+                    String targetEmail = DB.getEmail(target);
+                    if (targetEmail != null && !targetEmail.isEmpty()) {
+                        MailUtil.sendGameInvite(targetEmail, username, gameLink);
+                        emailSent = true;
+                        System.out.println("[Morix] Invite email sent to " + target + " (" + targetEmail + ")");
+                    } else {
+                        System.out.println("[Morix] No email for user: " + target);
+                    }
+                } catch (Exception mailEx) {
+                    System.err.println("[Morix] Invite email failed: " + mailEx.getMessage());
+                }
+                if (targetWs == null) {
+                    String offlineMsg = emailSent
+                        ? target + " is offline — email notification sent!"
+                        : target + " is offline and has no email set.";
+                    send(session, obj().put("type","invite_result").put("success",false).put("message", offlineMsg));
                     return true;
                 }
+                // Online: send WS invite + also email
                 safeSend(targetWs, obj().put("type","incoming_invite").put("from",username));
-                send(session,obj().put("type","invite_result").put("success",true).put("to",target));
+                String onlineMsg = emailSent ? "Notified! Email also sent to " + target : "Notified " + target + "!";
+                send(session, obj().put("type","invite_result").put("success",true).put("to",target).put("message", onlineMsg));
                 return true;
             }
 

@@ -1,89 +1,103 @@
 package com.morix.util;
 
-import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.*;
+import java.util.Properties;
 
 /**
- * Sends email notifications using JavaMail (SMTP).
+ * Sends transactional emails for Morix.
  *
- * Configure via environment variables:
- *   MAIL_HOST     - SMTP host (e.g. smtp.gmail.com)
- *   MAIL_PORT     - SMTP port (e.g. 587)
- *   MAIL_USER     - sender email address
- *   MAIL_PASS     - app password / SMTP password
- *   MAIL_FROM     - display name (optional, defaults to MAIL_USER)
- *
- * For Gmail: enable 2FA and create an App Password.
+ * Required environment variables:
+ *   MAIL_HOST     — SMTP host,       e.g. smtp.gmail.com
+ *   MAIL_PORT     — SMTP port,       e.g. 587
+ *   MAIL_USER     — SMTP username / sender address
+ *   MAIL_PASSWORD — SMTP password or app-password
+ *   MAIL_FROM     — "From" display,  e.g. "Morix Game <no-reply@yourdomain.com>"
+ *                   (defaults to MAIL_USER if not set)
  */
 public class MailUtil {
 
-    private static final String HOST = System.getenv("MAIL_HOST");
-    private static final String PORT = System.getenv().getOrDefault("MAIL_PORT", "587");
-    private static final String USER = System.getenv("MAIL_USER");
-    private static final String PASS = System.getenv("MAIL_PASS");
-    private static final String FROM = System.getenv().getOrDefault("MAIL_FROM", USER);
+    private static final String HOST     = System.getenv("MAIL_HOST");
+    private static final String PORT     = System.getenv("MAIL_PORT") != null
+                                               ? System.getenv("MAIL_PORT") : "587";
+    private static final String USER     = System.getenv("MAIL_USER");
+    private static final String PASSWORD = System.getenv("MAIL_PASSWORD");
+    private static final String FROM     = System.getenv("MAIL_FROM") != null
+                                               ? System.getenv("MAIL_FROM") : USER;
 
-    private static boolean isConfigured() {
-        return HOST != null && USER != null && PASS != null;
+    /**
+     * Returns true if all required environment variables are set.
+     */
+    public static boolean isConfigured() {
+        return HOST != null && !HOST.isEmpty()
+            && USER != null && !USER.isEmpty()
+            && PASSWORD != null && !PASSWORD.isEmpty();
     }
 
     /**
-     * Sends a game invite email to the target player.
+     * Sends a game-invite email to {@code toEmail}.
      *
-     * @param toEmail     recipient email address
-     * @param fromPlayer  username of the inviter
-     * @param gameLink    URL to join the game (e.g. https://morrix.onrender.com)
+     * @param toEmail   recipient's email address
+     * @param fromUser  Morix username of the person who sent the invite
+     * @param gameLink  public URL of the game, e.g. "https://morix.onrender.com"
      */
-    public static void sendGameInvite(String toEmail, String fromPlayer, String gameLink) {
+    public static void sendGameInvite(String toEmail, String fromUser, String gameLink)
+            throws MessagingException {
+
         if (!isConfigured()) {
-            System.out.println("[Morix] Mail not configured — skipping invite email to " + toEmail);
-            return;
+            throw new MessagingException(
+                "Mail not configured — set MAIL_HOST, MAIL_USER, MAIL_PASSWORD env vars.");
         }
 
-        new Thread(() -> {
-            try {
-                Properties props = new Properties();
-                props.put("mail.smtp.auth", "true");
-                props.put("mail.smtp.starttls.enable", "true");
-                props.put("mail.smtp.host", HOST);
-                props.put("mail.smtp.port", PORT);
+        Properties props = new Properties();
+        props.put("mail.smtp.auth",            "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host",            HOST);
+        props.put("mail.smtp.port",            PORT);
+        props.put("mail.smtp.ssl.trust",       HOST);
 
-                Session session = Session.getInstance(props, new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(USER, PASS);
-                    }
-                });
-
-                Message msg = new MimeMessage(session);
-                msg.setFrom(new InternetAddress(USER, "Morrix — 3 Men's Morris"));
-                msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-                msg.setSubject("⚔️ " + fromPlayer + " challenged you to a game on Morrix!");
-
-                String html =
-                    "<div style='font-family:Arial,sans-serif;max-width:480px;margin:auto;" +
-                    "background:#16213e;color:#eef0f8;border-radius:16px;padding:32px;'>" +
-                    "<h1 style='color:#e2b96f;letter-spacing:4px;text-align:center;'>MORIX</h1>" +
-                    "<p style='font-size:1rem;text-align:center;'>3 Men's Morris · Online</p>" +
-                    "<hr style='border-color:#0f3460;margin:20px 0'/>" +
-                    "<p style='font-size:1.1rem;'>Hey! <strong style='color:#e2b96f;'>" + fromPlayer +
-                    "</strong> has challenged you to a game of <strong>3 Men's Morris</strong>!</p>" +
-                    "<p style='color:#b0b8d0;'>Click the button below to join the game and accept the challenge.</p>" +
-                    "<div style='text-align:center;margin:28px 0;'>" +
-                    "<a href='" + gameLink + "' style='background:#e2b96f;color:#1a1a2e;padding:14px 32px;" +
-                    "border-radius:8px;font-weight:700;font-size:1rem;text-decoration:none;'>⚔️ Accept Challenge</a>" +
-                    "</div>" +
-                    "<p style='color:#555;font-size:0.8rem;text-align:center;'>If you didn't expect this, you can ignore this email.</p>" +
-                    "</div>";
-
-                msg.setContent(html, "text/html; charset=utf-8");
-                Transport.send(msg);
-                System.out.println("[Morix] Invite email sent to " + toEmail + " from " + fromPlayer);
-
-            } catch (Exception e) {
-                System.err.println("[Morix] Failed to send invite email: " + e.getMessage());
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(USER, PASSWORD);
             }
-        }).start();
+        });
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(FROM));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+        message.setSubject(fromUser + " challenged you to a game on Morix!");
+
+        String html =
+            "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;background:#0f0f1a;color:#eef0f8;padding:32px'>" +
+            "<div style='max-width:480px;margin:0 auto;background:#16213e;border:1px solid #0f3460;border-radius:16px;padding:32px;text-align:center'>" +
+            "<h1 style='color:#e2b96f;letter-spacing:4px;font-size:2rem'>MORIX</h1>" +
+            "<p style='color:#b0b8d0;margin:8px 0 0'>3 Men's Morris · Online</p>" +
+            "<hr style='border:none;border-top:1px solid #0f3460;margin:24px 0'/>" +
+            "<p style='font-size:1.1rem'>⚔️ <strong style='color:#e2b96f'>" + escHtml(fromUser) + "</strong> wants to play!</p>" +
+            "<p style='color:#7a8099;font-size:0.9rem;margin:8px 0 24px'>You have an open game invite waiting for you.</p>" +
+            "<a href='" + escHtml(gameLink) + "' " +
+            "style='display:inline-block;background:#e2b96f;color:#1a1a2e;padding:12px 32px;border-radius:8px;font-weight:700;font-size:1rem;text-decoration:none'>▶ Play Now</a>" +
+            "<p style='color:#333;font-size:0.72rem;margin-top:28px'>You received this because someone added you as a friend on Morix.</p>" +
+            "</div></body></html>";
+
+        MimeBodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent(html, "text/html; charset=UTF-8");
+
+        Multipart multipart = new MimeMultipart("alternative");
+        // Plain-text fallback
+        MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText(fromUser + " challenged you to Morix! Play at: " + gameLink, "UTF-8");
+        multipart.addBodyPart(textPart);
+        multipart.addBodyPart(htmlPart);
+
+        message.setContent(multipart);
+        Transport.send(message);
+    }
+
+    private static String escHtml(String s) {
+        if (s == null) return "";
+        return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+                .replace("\"","&quot;").replace("'","&#39;");
     }
 }

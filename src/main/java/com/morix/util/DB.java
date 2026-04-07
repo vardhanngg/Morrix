@@ -65,7 +65,9 @@ public class DB {
         String[] parts = uri.getUserInfo().split(":", 2);
         USER = parts[0];
         PASS = parts.length > 1 ? parts[1] : "";
-        URL  = "jdbc:postgresql://" + uri.getHost() + ":" + uri.getPort()
+        int port = uri.getPort();
+        if (port == -1) port = 5432;
+        URL  = "jdbc:postgresql://" + uri.getHost() + ":" + port
                + uri.getPath() + "?sslmode=require";
     }
 

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Tomcat Context configuration — META-INF/context.xml
+  Defines a JNDI DataSource so Tomcat manages the connection pool.
+  DB.java looks this up via: java:comp/env/jdbc/morixDB
+  On Render, override URL/username/password via DATABASE_URL env var (DB.java handles both).
+<Context>
+    <Resource
+        name="jdbc/morixDB"
+        auth="Container"
+        type="javax.sql.DataSource"
+        driverClassName="org.postgresql.Driver"
+        url="jdbc:postgresql://localhost:5432/morix"
+        username="morix_user"
+        password="morix_pass"
+        maxTotal="20"
+        maxIdle="10"
+        maxWaitMillis="10000"
+        validationQuery="SELECT 1"
+        testOnBorrow="true"
+        testWhileIdle="true"
+        timeBetweenEvictionRunsMillis="30000"
+    />
+</Context>
+-->
+<Context>
+</Context>

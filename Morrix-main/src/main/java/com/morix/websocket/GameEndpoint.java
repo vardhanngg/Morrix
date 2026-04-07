@@ -469,22 +469,33 @@ public class GameEndpoint {
                 if (username==null) return true;
                 String target    = msg.optString("to","");
                 Session targetWs = store.getOnline(target);
-                String gameLink  = "https://" + System.getenv().getOrDefault("RENDER_EXTERNAL_HOSTNAME", "localhost:8080");
-                // Always try to send email invite regardless of online status
+                String host      = System.getenv("RENDER_EXTERNAL_HOSTNAME");
+                String gameLink  = (host != null && !host.isEmpty()) ? "https://" + host : "http://localhost:8080";
+                boolean emailSent = false;
+                // Always try email — works online or offline
                 try {
                     String targetEmail = DB.getEmail(target);
                     if (targetEmail != null && !targetEmail.isEmpty()) {
                         MailUtil.sendGameInvite(targetEmail, username, gameLink);
+                        emailSent = true;
+                        System.out.println("[Morix] Invite email sent to " + target + " (" + targetEmail + ")");
+                    } else {
+                        System.out.println("[Morix] No email for user: " + target);
                     }
                 } catch (Exception mailEx) {
-                    System.err.println("[Morix] Could not send invite email: " + mailEx.getMessage());
+                    System.err.println("[Morix] Invite email failed: " + mailEx.getMessage());
                 }
                 if (targetWs == null) {
-                    send(session,obj().put("type","invite_result").put("success",false).put("message",target+" is offline. Email invite sent!"));
+                    String offlineMsg = emailSent
+                        ? target + " is offline — email notification sent!"
+                        : target + " is offline and has no email set.";
+                    send(session, obj().put("type","invite_result").put("success",false).put("message", offlineMsg));
                     return true;
                 }
+                // Online: send WS invite + also email
                 safeSend(targetWs, obj().put("type","incoming_invite").put("from",username));
-                send(session,obj().put("type","invite_result").put("success",true).put("to",target));
+                String onlineMsg = emailSent ? "Notified! Email also sent to " + target : "Notified " + target + "!";
+                send(session, obj().put("type","invite_result").put("success",true).put("to",target).put("message", onlineMsg));
                 return true;
             }
 

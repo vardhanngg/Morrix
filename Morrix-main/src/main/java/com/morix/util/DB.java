@@ -259,7 +259,7 @@ public class DB {
         JSONArray arr = new JSONArray();
         try (Connection c = getConn(); Statement s = c.createStatement();
              ResultSet r = s.executeQuery(
-                     "SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10")) {
+                     "SELECT username, wins FROM players WHERE username NOT LIKE '%Bot%' AND username != '🤖 Bot' ORDER BY wins DESC LIMIT 10")) {
             while (r.next())
                 arr.put(new JSONObject().put("player", r.getString(1)).put("wins", r.getInt(2)));
         }

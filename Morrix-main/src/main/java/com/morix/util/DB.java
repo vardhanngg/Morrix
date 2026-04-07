@@ -3,6 +3,9 @@ package com.morix.util;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -10,31 +13,51 @@ import java.sql.*;
 import java.util.*;
 
 /**
- * Single class that owns the JDBC connection and every SQL operation.
- * PostgreSQL edition — compatible with Render's free Postgres tier.
+ * Single class that owns all JDBC / JNDI operations.
  *
- * On Render, set the environment variable DATABASE_URL to the Internal
- * Database URL shown on your Render Postgres dashboard.
+ * Connection priority:
+ *   1. Tomcat JNDI DataSource (context.xml) — used when deployed on Tomcat
+ *   2. DATABASE_URL env var                  — Render / cloud deployment
+ *   3. Fallback params from web.xml          — local testing
  */
 public class DB {
 
+    // JNDI DataSource (from context.xml) — preferred in Tomcat
+    private static DataSource jndiDataSource = null;
+
+    // Fallback direct JDBC params
     private static String URL;
     private static String USER;
     private static String PASS;
 
     public static void init(String fallbackUrl, String fallbackUser, String fallbackPass)
             throws Exception {
-        Class.forName("org.postgresql.Driver");
-        String envUrl = System.getenv("DATABASE_URL");
-        if (envUrl != null && !envUrl.isEmpty()) {
-            parsePostgresUrl(envUrl);
-        } else {
-            URL  = fallbackUrl;
-            USER = fallbackUser;
-            PASS = fallbackPass;
+
+        // 1. Try JNDI (context.xml / Tomcat container resource)
+        try {
+            Context initCtx = new InitialContext();
+            Context envCtx  = (Context) initCtx.lookup("java:comp/env");
+            jndiDataSource  = (DataSource) envCtx.lookup("jdbc/morixDB");
+            System.out.println("[Morix] Using JNDI DataSource from context.xml");
+        } catch (Exception jndiEx) {
+            // JNDI not configured — fall through to direct JDBC
+            jndiDataSource = null;
+
+            Class.forName("org.postgresql.Driver");
+            String envUrl = System.getenv("DATABASE_URL");
+            if (envUrl != null && !envUrl.isEmpty()) {
+                parsePostgresUrl(envUrl);
+                System.out.println("[Morix] Using DATABASE_URL env var");
+            } else {
+                URL  = fallbackUrl;
+                USER = fallbackUser;
+                PASS = fallbackPass;
+                System.out.println("[Morix] Using fallback JDBC params from web.xml");
+            }
         }
+
         try (Connection c = getConn()) { createTables(c); }
-        System.out.println("[Morix] Database ready: " + URL);
+        System.out.println("[Morix] Database ready");
     }
 
     private static void parsePostgresUrl(String raw) throws Exception {
@@ -42,11 +65,14 @@ public class DB {
         String[] parts = uri.getUserInfo().split(":", 2);
         USER = parts[0];
         PASS = parts.length > 1 ? parts[1] : "";
-        URL  = "jdbc:postgresql://" + uri.getHost() + ":" + uri.getPort()
+        int port = uri.getPort();
+        if (port == -1) port = 5432;
+        URL  = "jdbc:postgresql://" + uri.getHost() + ":" + port
                + uri.getPath() + "?sslmode=require";
     }
 
     static Connection getConn() throws SQLException {
+        if (jndiDataSource != null) return jndiDataSource.getConnection();
         return DriverManager.getConnection(URL, USER, PASS);
     }
 
@@ -56,10 +82,13 @@ public class DB {
                 "CREATE TABLE IF NOT EXISTS users (" +
                 "  username      TEXT PRIMARY KEY," +
                 "  password_hash TEXT NOT NULL," +
+                "  email         TEXT,
                 "  friends       TEXT NOT NULL DEFAULT '[]'," +
                 "  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                 ")"
             );
+            // Upgrade existing DB safely
+            try { s.executeUpdate("ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT"); } catch (Exception ignored) {}
             s.executeUpdate(
                 "CREATE TABLE IF NOT EXISTS games (" +
                 "  id        SERIAL PRIMARY KEY," +
@@ -80,7 +109,8 @@ public class DB {
         }
     }
 
-    // Password hashing
+    // ── Password hashing ──────────────────────────────────────────────────────
+
     public static String hashPassword(String password) {
         try {
             SecureRandom rng = new SecureRandom();
@@ -119,7 +149,8 @@ public class DB {
         return out;
     }
 
-    // User ops
+    // ── User operations ───────────────────────────────────────────────────────
+
     public static boolean userExists(String username) throws SQLException {
         try (Connection c = getConn();
              PreparedStatement p = c.prepareStatement("SELECT 1 FROM users WHERE username=?")) {
@@ -128,12 +159,23 @@ public class DB {
         }
     }
 
-    public static void createUser(String username, String passwordHash) throws SQLException {
+    public static void createUser(String username, String passwordHash, String email) throws SQLException {
         try (Connection c = getConn();
              PreparedStatement p = c.prepareStatement(
-                     "INSERT INTO users(username,password_hash,friends) VALUES(?,?,?)")) {
-            p.setString(1, username); p.setString(2, passwordHash); p.setString(3, "[]");
+                     "INSERT INTO users(username,password_hash,friends,email) VALUES(?,?,?,?)")) {
+            p.setString(1, username); p.setString(2, passwordHash); p.setString(3, "[]"); p.setString(4, email);
             p.executeUpdate();
+        }
+    }
+
+    public static String getEmail(String username) throws SQLException {
+        try (Connection c = getConn();
+             PreparedStatement p = c.prepareStatement("SELECT email FROM users WHERE username=?")) {
+            p.setString(1, username);
+            try (ResultSet r = p.executeQuery()) {
+                if (!r.next()) return null;
+                return r.getString(1);
+            }
         }
     }
 
@@ -185,7 +227,8 @@ public class DB {
         return list;
     }
 
-    // Game ops
+    // ── Game operations ───────────────────────────────────────────────────────
+
     public static void saveGame(String winner, String loser, int moves, boolean abandoned)
             throws SQLException {
         try (Connection c = getConn()) {
@@ -217,8 +260,69 @@ public class DB {
         try (Connection c = getConn(); Statement s = c.createStatement();
              ResultSet r = s.executeQuery(
                      "SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10")) {
-            while (r.next()) arr.put(new JSONObject().put("player", r.getString(1)).put("wins", r.getInt(2)));
+            while (r.next())
+                arr.put(new JSONObject().put("player", r.getString(1)).put("wins", r.getInt(2)));
         }
         return arr;
+    }
+
+    /**
+     * Returns last N games for a user as JSON array.
+     * Each entry: { opponent, result ("win"/"loss"/"abandoned"), moves, date }
+     */
+    public static JSONArray getGameHistory(String username, int limit) throws SQLException {
+        JSONArray arr = new JSONArray();
+        String sql =
+            "SELECT winner, loser, moves, abandoned, ts FROM games " +
+            "WHERE (winner=? OR loser=?) AND abandoned=0 " +
+            "ORDER BY ts DESC LIMIT ?";
+        try (Connection c = getConn();
+             PreparedStatement p = c.prepareStatement(sql)) {
+            p.setString(1, username);
+            p.setString(2, username);
+            p.setInt(3, limit);
+            try (ResultSet r = p.executeQuery()) {
+                while (r.next()) {
+                    String winner = r.getString("winner");
+                    String loser  = r.getString("loser");
+                    String result = username.equals(winner) ? "win" : "loss";
+                    String opp    = username.equals(winner) ? loser : winner;
+                    arr.put(new JSONObject()
+                        .put("opponent", opp != null ? opp : "Unknown")
+                        .put("result", result)
+                        .put("moves", r.getInt("moves"))
+                        .put("date", r.getTimestamp("ts").toString().substring(0, 16))
+                    );
+                }
+            }
+        }
+        return arr;
+    }
+
+    /**
+     * Returns profile stats for a user: wins, losses, total, winRate
+     */
+    public static JSONObject getProfile(String username) throws SQLException {
+        JSONObject obj = new JSONObject();
+        obj.put("username", username);
+        // wins/losses from players table
+        try (Connection c = getConn();
+             PreparedStatement p = c.prepareStatement(
+                     "SELECT wins, losses FROM players WHERE username=?")) {
+            p.setString(1, username);
+            try (ResultSet r = p.executeQuery()) {
+                if (r.next()) {
+                    int wins   = r.getInt("wins");
+                    int losses = r.getInt("losses");
+                    int total  = wins + losses;
+                    double rate = total > 0 ? Math.round((wins * 100.0 / total) * 10.0) / 10.0 : 0.0;
+                    obj.put("wins", wins).put("losses", losses)
+                       .put("total", total).put("winRate", rate);
+                } else {
+                    obj.put("wins", 0).put("losses", 0).put("total", 0).put("winRate", 0.0);
+                }
+            }
+        }
+        return obj;
     }
 }

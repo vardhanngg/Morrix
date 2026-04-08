@@ -199,6 +199,30 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
 .friend-item:hover .remove-btn{opacity:1}.remove-btn:hover{color:var(--red)}
 .no-friends{text-align:center;padding:24px 10px;color:var(--muted);font-size:0.82rem;line-height:1.7}
 
+/* HOW TO PLAY MODAL */
+#rules-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);align-items:center;justify-content:center;z-index:400;padding:16px}
+#rules-modal.show{display:flex}
+.rules-box{background:var(--surface);border:1px solid var(--gold);border-radius:20px;padding:32px 30px 28px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;position:relative;box-shadow:0 24px 70px #00000099}
+.rules-box::-webkit-scrollbar{width:4px}.rules-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.rules-close{position:absolute;top:14px;right:16px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1}
+.rules-close:hover{background:#3a1a1a;color:var(--red);border-color:var(--red)}
+.rules-box h2{font-size:1.3rem;color:var(--gold);letter-spacing:2px;margin-bottom:6px;text-align:center}
+.rules-box .rules-subtitle{text-align:center;color:var(--muted);font-size:0.78rem;letter-spacing:1px;margin-bottom:20px}
+.rules-section{margin-bottom:18px}
+.rules-section h3{font-size:0.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.rules-section h3::after{content:'';flex:1;height:1px;background:var(--border)}
+.rules-section p,.rules-section li{color:var(--text2);font-size:0.85rem;line-height:1.6}
+.rules-section ul,.rules-section ol{padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.rules-section li{list-style:disc}
+.rules-section ol li{list-style:decimal}
+.rules-phase{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px}
+.rules-phase-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.rules-phase-label.phase1{color:#6aff9e}.rules-phase-label.phase2{color:#6ab0ff}.rules-phase-label.phase3{color:#e2b96f}
+.rules-tip{background:#1a2a0a;border:1px solid #6aff9e33;border-radius:var(--radius-sm);padding:8px 12px;margin-top:6px}
+.rules-tip p{color:#6aff9e;font-size:0.8rem}
+.btn-howto{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:6px 14px;border-radius:var(--radius-sm);font-size:0.78rem;cursor:pointer;font-weight:600;letter-spacing:0.5px;transition:all 0.2s;display:inline-flex;align-items:center;gap:5px}
+.btn-howto:hover{background:#e2b96f18;transform:translateY(-1px)}
+
 /* toast */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--gold);color:var(--text);padding:10px 20px;border-radius:10px;font-size:0.85rem;z-index:300;animation:fadeInUp 0.3s ease;box-shadow:0 4px 20px #00000066}
 @keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
@@ -254,6 +278,7 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
 <div id="main-screen" class="screen">
   <div class="game-col">
     <div class="top-bar">
+      <button class="btn-howto" onclick="document.getElementById('rules-modal').classList.add('show')">📖 How to Play</button>
       <div class="logo-sm">MORIX</div>
       <div class="user-pill">
         <div class="avatar" id="user-avatar">?</div>
@@ -415,6 +440,68 @@ svg .selected{stroke:#fff;stroke-width:4;filter:drop-shadow(0 0 6px #fff)}
   <span>🔄 <strong id="rematch-from"></strong> wants a rematch!</span>
   <button class="btn btn-success btn-sm" onclick="acceptRematch()">Accept</button>
   <button class="btn btn-danger btn-sm" onclick="declineRematch()">Decline</button>
+</div>
+
+<!-- HOW TO PLAY MODAL -->
+<div id="rules-modal">
+  <div class="rules-box">
+    <button class="rules-close" onclick="document.getElementById('rules-modal').classList.remove('show')" title="Close">✕</button>
+    <h2>HOW TO PLAY</h2>
+    <p class="rules-subtitle">3 Men's Morris · Morix Edition</p>
+
+    <div class="rules-section">
+      <h3>🎯 Objective</h3>
+      <p>Be the first player to form a straight line with all <strong style="color:var(--blue)">3 of your pieces</strong> — horizontally, vertically, or diagonally.</p>
+    </div>
+
+    <div class="rules-section">
+      <h3>🎮 Gameplay Phases</h3>
+      <div class="rules-phase">
+        <div class="rules-phase-label phase1">Phase 1 — Placement</div>
+        <p style="color:var(--text2);font-size:0.84rem">Each player takes turns placing one piece on any empty spot on the board. This continues until all 6 pieces (3 per player) are placed.</p>
+      </div>
+      <div class="rules-phase">
+        <div class="rules-phase-label phase2">Phase 2 — Movement</div>
+        <p style="color:var(--text2);font-size:0.84rem">Once all pieces are placed, players take turns moving one of their pieces to an adjacent empty spot along the board lines. You cannot jump over pieces.</p>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <h3>🏆 Winning</h3>
+      <p>Align all 3 of your pieces in a row — horizontally, vertically, or diagonally across any 3 connected points. The first player to do so wins the match!</p>
+    </div>
+
+    <div class="rules-section">
+      <h3>🗺️ The Board</h3>
+      <ul>
+        <li>The board has <strong style="color:var(--text)">9 intersection points</strong> arranged in a 3×3 grid.</li>
+        <li>Pieces can only move along drawn lines to directly adjacent points.</li>
+        <li>Corner pieces can move to 2 positions; edge pieces to 3; center to 4.</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <h3>⚙️ Game Modes</h3>
+      <ul>
+        <li><strong style="color:var(--gold)">vs Friend</strong> — Host a game, share the 4-digit code, and play in real time.</li>
+        <li><strong style="color:#c878ff">vs Bot</strong> — Practice solo against the AI opponent.</li>
+        <li><strong style="color:var(--green)">Rematch</strong> — After a game ends, request a rematch to play again instantly.</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <h3>💬 During a Game</h3>
+      <ul>
+        <li>Use the <strong style="color:var(--text)">chat panel</strong> to talk with your opponent.</li>
+        <li>Send <strong style="color:var(--text)">emoji reactions</strong> using the emoji bar below the board.</li>
+        <li>Click <strong style="color:var(--text)">Leave Game</strong> to forfeit and return to the lobby.</li>
+      </ul>
+    </div>
+
+    <div class="rules-tip">
+      <p>💡 <strong>Pro Tip:</strong> Control the center point — it connects to the most positions and gives you the most flexibility during the movement phase!</p>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -977,6 +1064,11 @@ document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key===
 document.getElementById('reg-user').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()})
 document.getElementById('reg-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()})
 document.getElementById('reg-pass2').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()})
+
+// Close rules modal on backdrop click
+document.getElementById('rules-modal').addEventListener('click', function(e){
+  if(e.target === this) this.classList.remove('show');
+});
 
 // Leaderboard (AJAX)
 document.getElementById('leaderboard-section').addEventListener('toggle',function(){if(this.open)loadLeaderboard()})

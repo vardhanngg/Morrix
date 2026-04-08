@@ -827,6 +827,8 @@ function onMessage(event){
     const firstLabel=myTurn?'🎯 You go first!':`⏳ ${data.opponent||'Opponent'} goes first!`
     document.getElementById('status').textContent=`Game starting! ${firstLabel}`
     if(data.vs_bot) appendChat(null,'🤖 Bot joined the game!',false,true)
+    // If this is the inviter (needs_ack), tell server to enter game loop
+    if(data.needs_ack) sendMsg({action:'game_ready_ack'})
     return
   }
 

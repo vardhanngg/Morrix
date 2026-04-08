@@ -268,6 +268,19 @@ public class GameEndpoint {
                 break;
             }
 
+            case "game_ready_ack": {
+                // Inviter's client acknowledged game_ready — transition this endpoint into game loop
+                String[] pending = store.popPendingGame(username);
+                if (pending != null && username != null) {
+                    this.roomCode     = pending[0];
+                    this.symbol       = pending[1];
+                    this.sessionToken = pending[2];
+                    this.inGameLoop   = true;
+                    this.vsBot        = false;
+                }
+                break;
+            }
+
             default:
                 handleSocial(action, msg, session);
                 break;
@@ -516,7 +529,8 @@ public class GameEndpoint {
                 safeSend(inviterWs, obj().put("type","game_ready")
                         .put("code",code).put("symbol","X")
                         .put("session_token",tokX).put("opponent",username)
-                        .put("first_turn",first));
+                        .put("first_turn",first)
+                        .put("needs_ack",true));
                 this.roomCode=code; this.symbol="O"; this.sessionToken=tokO; this.inGameLoop=true;
                 send(session, obj().put("type","game_ready")
                         .put("code",code).put("symbol","O")
